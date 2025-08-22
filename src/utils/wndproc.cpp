@@ -23,28 +23,25 @@ LRESULT CALLBACK CustomWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 // Hook the window procedure of the target application
 void wndproc() {
-    // Find the window by title using the WinAPI FindWindowA function
-    HWND hwnd = FindWindowA(NULL, WINDOW_TITLE);
+    // Get the cached window handle instead of searching repeatedly
+    HWND hwnd = get_minecraft_window();
 
-    // Check if the target window is found
-    if (hwnd == NULL) {
-        printf("[-] Could not find window with title 'Minecraft'.\n");
+    // Check if we have a valid cached window handle
+    if (hwnd == NULL || !is_minecraft_window_valid()) {
+        // Window not found or no longer valid
         return;
     }
 
-    // Hook the window procedure by replacing it with CustomWndProc
-    WNDPROC prevWndProc = (WNDPROC)SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)CustomWndProc);
-
-    // Ensure we properly store the original procedure the first time
-    if (!originalWndProc && prevWndProc) {
-        originalWndProc = prevWndProc;
-    }
-
-    // Check if the hooking was successful
+    // Hook the window procedure by replacing it with CustomWndProc (only if not already hooked)
     if (!originalWndProc) {
-        // printf("[-] Failed to set custom wndproc.\n");
-        return;
+        WNDPROC prevWndProc = (WNDPROC)SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)CustomWndProc);
+        
+        // Store the original procedure
+        if (prevWndProc) {
+            originalWndProc = prevWndProc;
+            // printf("[+] wndproc for window hooked!\n");
+        } else {
+            // printf("[-] Failed to set custom wndproc.\n");
+        }
     }
-    
-    // printf("[+] wndproc for 'Minecraft' hooked!\n");
 }

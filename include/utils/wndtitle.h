@@ -3,5 +3,7 @@
 
 void change_window_title(const char* newTitle);
 void restore_window_title();
+HWND get_minecraft_window();
+bool is_minecraft_window_valid();
 
 #endif

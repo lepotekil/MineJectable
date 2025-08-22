@@ -8,6 +8,9 @@ HMODULE g_hModule = NULL;
 
 // Cleanup function that handles resource deallocation
 void cleanup() {
+    // Restore original window title before cleanup
+    restore_window_title();
+    
     if (vm != NULL) {
         vm->DetachCurrentThread();
         vm = NULL;
@@ -29,7 +32,11 @@ void cleanup() {
 
 // Main initialization function for the DLL
 DWORD WINAPI init(LPVOID lpParam) {
-    g_hModule = (HMODULE)lpParam;
+    // g_hModule is already set in DllMain, lpParam verification for safety
+    if (g_hModule != (HMODULE)lpParam) {
+        printf("[-] Warning: Module handle mismatch\n");
+        g_hModule = (HMODULE)lpParam;
+    }
 
     if (!AllocConsole() || freopen("CONOUT$", "w", stdout) == NULL) {
         cleanup();
